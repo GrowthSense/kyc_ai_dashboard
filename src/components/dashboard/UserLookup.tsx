@@ -13,7 +13,8 @@ import {
   Clock,
   AlertTriangle,
   ExternalLink,
-  Loader2
+  Loader2,
+  Eye
 } from 'lucide-react';
 import { KYCCase } from '@/types/kyc';
 import { StatusBadge, RiskBadge } from './StatusBadge';
@@ -76,6 +77,7 @@ const UserLookup: React.FC<UserLookupProps> = ({ cases, onViewCase }) => {
       case 'rejected': return <XCircle className="w-5 h-5 text-red-500" />;
       case 'pending': return <Clock className="w-5 h-5 text-amber-500" />;
       case 'flagged': return <AlertTriangle className="w-5 h-5 text-orange-500" />;
+      case 'needs_review': return <Eye className="w-5 h-5 text-violet-500" />;
       default: return <Clock className="w-5 h-5 text-amber-700" />;
     }
   };

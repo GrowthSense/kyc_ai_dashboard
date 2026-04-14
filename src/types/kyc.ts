@@ -1,4 +1,4 @@
-export type KYCStatus = 'pending' | 'approved' | 'rejected' | 'flagged' | 'under_review';
+export type KYCStatus = 'pending' | 'approved' | 'rejected' | 'flagged' | 'under_review' | 'needs_review';
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type DocumentType = 'id_front' | 'id_back' | 'selfie' | 'proof_of_address' | 'passport' | 'utility_bill';
 
@@ -58,6 +58,7 @@ export interface KYCCase {
   notes: InternalNote[];
   country: string;
   phoneNumber: string;
+  reviewReasons?: string[];
 }
 
 export interface AMLMatch {

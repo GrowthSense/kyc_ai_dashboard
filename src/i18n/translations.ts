@@ -71,6 +71,7 @@ const t = {
     status_expired: 'Expired',
     status_flagged: 'Flagged',
     status_under_review: 'Under Review',
+    status_needs_review: 'Action Required',
 
     // Risk levels
     risk_low: 'Low',
@@ -416,6 +417,7 @@ const t = {
     status_expired: 'Expirado',
     status_flagged: 'Marcado',
     status_under_review: 'En Revisión',
+    status_needs_review: 'Acción Requerida',
 
     risk_low: 'Bajo',
     risk_medium: 'Medio',
@@ -745,6 +747,7 @@ const t = {
     status_expired: 'Expiré',
     status_flagged: 'Signalé',
     status_under_review: 'En cours d\'examen',
+    status_needs_review: 'Action Requise',
 
     risk_low: 'Faible',
     risk_medium: 'Moyen',
@@ -1074,6 +1077,7 @@ const t = {
     status_expired: 'Abgelaufen',
     status_flagged: 'Markiert',
     status_under_review: 'In Überprüfung',
+    status_needs_review: 'Aktion Erforderlich',
 
     risk_low: 'Niedrig',
     risk_medium: 'Mittel',
@@ -1403,6 +1407,7 @@ const t = {
     status_expired: 'Expirado',
     status_flagged: 'Sinalizado',
     status_under_review: 'Em Revisão',
+    status_needs_review: 'Ação Necessária',
 
     risk_low: 'Baixo',
     risk_medium: 'Médio',

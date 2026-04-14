@@ -239,6 +239,7 @@ const CaseList: React.FC<CaseListProps> = ({ cases, onViewCase }) => {
                 >
                   <option value="all">{t('cases_all_statuses')}</option>
                   <option value="pending">{t('status_pending')}</option>
+                  <option value="needs_review">{t('status_needs_review')}</option>
                   <option value="under_review">{t('status_under_review')}</option>
                   <option value="approved">{t('status_approved')}</option>
                   <option value="rejected">{t('status_rejected')}</option>
@@ -404,7 +405,14 @@ const CaseList: React.FC<CaseListProps> = ({ cases, onViewCase }) => {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={kycCase.status} size="sm" />
+                    <div className="flex flex-col gap-1">
+                      <StatusBadge status={kycCase.status} size="sm" />
+                      {kycCase.status === 'needs_review' && kycCase.reviewReasons?.[0] && (
+                        <span className="text-xs text-violet-600 max-w-[200px] truncate" title={kycCase.reviewReasons.join('; ')}>
+                          {kycCase.reviewReasons[0]}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <RiskBadge level={kycCase.riskLevel} size="sm" />

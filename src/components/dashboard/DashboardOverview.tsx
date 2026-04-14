@@ -12,7 +12,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Users,
-  Shield
+  Shield,
+  Eye
 } from 'lucide-react';
 import { KYCCase } from '@/types/kyc';
 import { StatusBadge, RiskBadge } from './StatusBadge';
@@ -61,6 +62,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ cases, onViewCase
     rejected: cases.filter(c => c.status === 'rejected').length,
     flagged: cases.filter(c => c.status === 'flagged').length,
     underReview: cases.filter(c => c.status === 'under_review').length,
+    needsReview: cases.filter(c => c.status === 'needs_review').length,
     highRisk: cases.filter(c => c.riskLevel === 'high' || c.riskLevel === 'critical').length,
   };
 
@@ -69,10 +71,19 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ cases, onViewCase
     .slice(0, 5);
 
   const urgentCases = cases
-    .filter(c => c.status === 'pending' && (c.riskLevel === 'high' || c.riskLevel === 'critical'))
+    .filter(c => (c.status === 'pending' || c.status === 'needs_review') && (c.riskLevel === 'high' || c.riskLevel === 'critical' || c.status === 'needs_review'))
     .slice(0, 5);
 
   const statCards = [
+    {
+      label: t('status_needs_review'),
+      value: stats.needsReview,
+      icon: Eye,
+      color: 'bg-violet-500',
+      bgColor: 'bg-violet-50',
+      change: '',
+      trend: 'up'
+    },
     {
       label: t('dash_pending_review'),
       value: stats.pending,

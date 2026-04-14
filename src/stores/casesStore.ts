@@ -23,6 +23,9 @@ interface BackendCase {
   documents?: any[];
   checks?: any[];
   auditTrail?: any[];
+  needsManualReview?: boolean;
+  aiReasons?: string[];
+  aiExtractedData?: any;
 }
 
 interface AuditEntry {
@@ -40,7 +43,8 @@ interface AuditEntry {
 const mapStatus = (s: string): KYCStatus => {
   const m: Record<string, KYCStatus> = {
     CREATED: 'pending', PENDING: 'pending', SUBMITTED: 'pending', DOCUMENTS_UPLOADED: 'pending',
-    PROCESSING: 'under_review', IN_REVIEW: 'under_review', AWAITING_REVIEW: 'under_review',
+    PROCESSING: 'under_review', IN_REVIEW: 'under_review',
+    AWAITING_REVIEW: 'needs_review',
     APPROVED: 'approved', REJECTED: 'rejected', FLAGGED: 'flagged', EXPIRED: 'pending',
   };
   return m[s?.toUpperCase()] ?? 'pending';
@@ -57,6 +61,26 @@ const mapRisk = (r: string): RiskLevel => {
 const getCheckScore = (checks: any[], ...types: string[]): number | null => {
   const check = checks.find((ch: any) => types.includes((ch.checkType ?? '').toUpperCase()));
   return check?.score != null ? Math.round(toDecimal(check.score) * 100) : null;
+};
+
+const buildReviewReasons = (c: BackendCase): string[] => {
+  const reasons: string[] = [];
+  if (c.aiReasons?.length) return c.aiReasons;
+  const ai = c.aiExtractedData;
+  if (!ai) return reasons;
+  if (ai.liveness?.livenessScore === 0 || ai.liveness?.isLive === false)
+    reasons.push('Liveness check failed — face may be obscured or photo is unclear');
+  if (ai.faceMatch?.faceMatchScore === 0 || ai.faceMatch?.isSamePerson === false)
+    reasons.push('Face match could not be verified — selfie does not match document');
+  if (ai.documentFraud?.docFraudScore > 30)
+    reasons.push('Possible document tampering detected');
+  if (ai.perCountryRisk?.perCountryRiskLevel === 'HIGH')
+    reasons.push('High country risk — additional verification required');
+  if (ai.overallRiskScore > 50)
+    reasons.push(`Elevated risk score (${ai.overallRiskScore}/100)`);
+  if (reasons.length === 0 && c.needsManualReview)
+    reasons.push('AI confidence is below the auto-approval threshold');
+  return reasons;
 };
 
 const transformCase = (c: BackendCase): KYCCase => {
@@ -110,6 +134,7 @@ const transformCase = (c: BackendCase): KYCCase => {
     notes: c.reviewerNotes ? [{ id: '1', author: 'Reviewer', content: c.reviewerNotes, timestamp: c.updatedAt }] : [],
     country: c.country ?? '',
     phoneNumber: '',
+    reviewReasons: buildReviewReasons(c),
   };
 };
 
@@ -198,7 +223,9 @@ export const useCasesStore = create<CasesState>((set) => ({
       const raw = data.case ?? data;
       set({ selectedCase: transformCase(raw) });
     } catch (err: any) {
-      set({ error: err.response?.data?.message || 'Review failed' });
+      const message = err.response?.data?.message || 'Review failed';
+      set({ error: message });
+      throw new Error(message);
     }
   },
 

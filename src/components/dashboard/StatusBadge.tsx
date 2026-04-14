@@ -18,17 +18,21 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
   };
 
   const statusConfig = {
-    pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', labelKey: 'status_pending' as const },
-    approved: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', labelKey: 'status_approved' as const },
-    rejected: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', labelKey: 'status_rejected' as const },
-    flagged: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500', labelKey: 'status_flagged' as const },
-    under_review: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-700', labelKey: 'status_under_review' as const }
+    pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', labelKey: 'status_pending' as const, tooltip: '' },
+    approved: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', labelKey: 'status_approved' as const, tooltip: '' },
+    rejected: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', labelKey: 'status_rejected' as const, tooltip: '' },
+    flagged: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500', labelKey: 'status_flagged' as const, tooltip: '' },
+    under_review: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-700', labelKey: 'status_under_review' as const, tooltip: '' },
+    needs_review: { bg: 'bg-violet-50', text: 'text-violet-700', dot: 'bg-violet-500 animate-pulse', labelKey: 'status_needs_review' as const, tooltip: 'AI could not auto-approve — a compliance officer must review this case' },
   };
 
   const config = statusConfig[status];
 
   return (
-    <span className={`${baseClasses} ${sizeClasses[size]} ${config.bg} ${config.text}`}>
+    <span
+      className={`${baseClasses} ${sizeClasses[size]} ${config.bg} ${config.text}`}
+      title={config.tooltip || undefined}
+    >
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot} mr-1.5`}></span>
       {t(config.labelKey)}
     </span>

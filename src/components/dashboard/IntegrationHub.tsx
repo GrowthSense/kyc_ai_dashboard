@@ -226,7 +226,7 @@ function ApiKeysTab() {
     try {
       const res = await api.post('/tenants/me/api-keys', {
         label: newLabel,
-        scopes: ['VERIFICATION_READ', 'VERIFICATION_WRITE'],
+        scopes: ['verification:read', 'verification:write'],
       });
       const payload = res.data?.data ?? res.data;
       setNewKey(payload.apiKey);

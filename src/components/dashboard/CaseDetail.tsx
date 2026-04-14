@@ -26,6 +26,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Avatar from '@/components/ui/Avatar';
 import { fetchVerificationDocuments } from '@/redux/api/kycDocuments';
 import { useCasesStore } from '@/stores/casesStore';
+import { toast } from '@/hooks/use-toast';
 
 interface CaseDetailProps {
   kycCase: KYCCase;
@@ -46,7 +47,7 @@ type TabType = 'documents' | 'timeline' | 'ai' | 'notes';
 
 const CaseDetail: React.FC<CaseDetailProps> = ({ kycCase, onBack, onUpdateCase }) => {
   const { user, hasPermission } = useAuth();
-  const { fetchCaseDetail, selectedCase: detailCase } = useCasesStore();
+  const { fetchCaseDetail, selectedCase: detailCase, reviewCase } = useCasesStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('documents');
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
@@ -128,29 +129,32 @@ const CaseDetail: React.FC<CaseDetailProps> = ({ kycCase, onBack, onUpdateCase }
     setActionModalOpen(true);
   };
 
-  const handleAction = (action: 'approve' | 'reject' | 'flag', reason: string, notes: string) => {
-    const newStatus = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'flagged';
+  const handleAction = async (action: 'approve' | 'reject' | 'flag', reason: string, notes: string) => {
+    if (action === 'approve' || action === 'reject') {
+      const backendStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+      try {
+        await reviewCase(
+          kycCase.id,
+          backendStatus,
+          action === 'reject' ? reason : undefined,
+          notes || undefined,
+        );
+        toast({
+          title: action === 'approve' ? 'Case approved' : 'Case rejected',
+          description: `${kycCase.userName}'s KYC case has been ${action}d.`,
+        });
+      } catch (err: any) {
+        toast({
+          title: 'Action failed',
+          description: err?.message || 'Failed to update case status.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     onUpdateCase(kycCase.id, {
-      status: newStatus,
-      notes: [
-        ...kycCase.notes,
-        {
-          id: `note-${Date.now()}`,
-          author: user?.name || 'Unknown',
-          content: `${action.charAt(0).toUpperCase() + action.slice(1)}ed: ${reason}${notes ? `. ${notes}` : ''}`,
-          timestamp: new Date().toISOString()
-        }
-      ],
-      timeline: [
-        ...kycCase.timeline,
-        {
-          id: `tl-${Date.now()}`,
-          type: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'flagged',
-          description: `Case ${action}ed - ${reason}`,
-          timestamp: new Date().toISOString(),
-          actor: user?.name || 'Unknown'
-        }
-      ]
+      status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'flagged',
     });
     setActionModalOpen(false);
   };
@@ -235,7 +239,7 @@ const CaseDetail: React.FC<CaseDetailProps> = ({ kycCase, onBack, onUpdateCase }
         </div>
 
         {/* Action Buttons */}
-        {kycCase.status === 'pending' || kycCase.status === 'under_review' ? (
+        {kycCase.status === 'pending' || kycCase.status === 'under_review' || kycCase.status === 'needs_review' ? (
           <div className="flex items-center gap-3">
             <button
               onClick={() => openActionModal('flag')}
@@ -265,6 +269,31 @@ const CaseDetail: React.FC<CaseDetailProps> = ({ kycCase, onBack, onUpdateCase }
           </div>
         )}
       </div>
+
+      {/* Needs Review Banner */}
+      {caseData.status === 'needs_review' && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-violet-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-violet-800">Manual Review Required</p>
+              <p className="text-sm text-violet-600 mt-0.5">
+                The AI verification could not auto-approve this case. A compliance officer must review and decide.
+              </p>
+              {caseData.reviewReasons && caseData.reviewReasons.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {caseData.reviewReasons.map((reason, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-violet-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0" />
+                      {reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
